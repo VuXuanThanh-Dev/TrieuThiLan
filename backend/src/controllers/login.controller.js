@@ -78,14 +78,27 @@ exports.changePassword = async (req, res, next)=>{
         }else{
             console.log('token ',tk);
         }
-        let decoded = await jwt.verify(tk, authen.secret, (err, decoded)=>{
-            console.log(err);
+        await jwt.verify(tk, authen.secret, (err, decoded)=>{
+            if(err){
+                res.json({message: 'errors', token: null, errors:'token is invalid!'})
+            }
         });
-        console.log(decoded);
-        res.json({message: 'oke', token: tk});
+        let salt = bcrypt.genSaltSync(12);
+        let password = bcrypt.hashSync(req.body.password, salt);
+        let result = await db.query("update admin set `password`=? where username=?",{
+            replacements: [password, req.body.username],
+            type: QueryTypes.UPDATE
+        });
+        console.log("Ket qua: ", result);
+        if(result[1]){
+            res.json({message:'admin.update_password.success', errors: null, data: result});
+        }else{
+            res.json({message: 'errors', errors: 'server.errors', data: null});
+        }
+       
+        
     }catch(err){
       console.log(err);
-      res.json({message: 'errors'})
     }
     
 };
