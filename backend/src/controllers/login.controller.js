@@ -6,31 +6,37 @@ const authen = require('../configs/auth.config');
 
 
 exports.login = async (req, res, next)=>{
-   let username = req.body.username;
-   let password = req.body.password;
-   let sql = "select * from admin where `username`=?";
-   let result = await db.query(sql, {
-       replacements: [username],
-       type: QueryTypes.SELECT
-   });
-   let kq = result[0];
-   if(kq == null){        
-       res.json({message:"admin.login.errors", errors: "username.errors", data: null})
-      return;
-    }
+   try{
+    let username = req.body.username;
+    let password = req.body.password;
+    let sql = "select * from admin where `username`=?";
+    let result = await db.query(sql, {
+        replacements: [username],
+        type: QueryTypes.SELECT
+    });
+    let kq = result[0];
+    if(kq == null){        
+        res.json({message:"admin.login.errors", errors: "username.errors", data: null})
+       return;
+     }
+     
+     let checkPassword = await bcrypt.compareSync( password, kq.password);
+     let token = jwt.sign(authen.payload, authen.secret, {expiresIn: '3h'});
     
-    let checkPassword = await bcrypt.compareSync( password, kq.password);
-    let token = jwt.sign(authen.payload, authen.secret, {expiresIn: '3h'});
-   
-    if(checkPassword){
-        res.json({message: "admin.login.success", errors: null, data: null, token: token})
-    }else{
-        res.json({message:"admin.login.errors", errors: "password.errors", data: null})
-        return;
-    }
+     if(checkPassword){
+         res.json({message: "admin.login.success", errors: null, data: null, token: token})
+     }else{
+         res.json({message:"admin.login.errors", errors: "password.errors", data: null})
+        
+     }
+   }catch(err){
+       console.log(err);
+       res.json({message: 'admin.login.errors', errors: 'server.errros'})
+   }
 };
 
 exports.signup = async (req, res, next)=>{
+   try{
     let username = req.body.username;
     let password = req.body.password;
     let has = '';
@@ -54,8 +60,49 @@ exports.signup = async (req, res, next)=>{
         type: QueryTypes.INSERT
     });
     if(!result){
-        res.json({message:"admin.sign_up.errors", errors: "server.errors", data: null})
     }else{
         res.json({message: "admin.sign_up.success", errors: null, data: result[0], token: token})
     }
+   }catch(err){
+    res.json({message:"admin.sign_up.errors", errors: "server.errors", data: null})
+
+   }
+};
+
+exports.changePassword = async (req, res, next)=>{
+    try{
+        checkAuthorization(req, res, next);
+        let tk = req.token;
+        if(!tk){
+          return;
+        }else{
+            console.log('token ',tk);
+        }
+        let decoded = await jwt.verify(tk, authen.secret, (err, decoded)=>{
+            console.log(err);
+        });
+        console.log(decoded);
+        res.json({message: 'oke', token: tk});
+    }catch(err){
+      console.log(err);
+      res.json({message: 'errors'})
+    }
+    
+};
+
+function checkAuthorization(req, res, next){
+   try{
+    let auth = req.headers['authorization'];
+    let token = auth.split(' ')[1];
+    if(token){
+     
+     req.token = token;
+     
+    }else{
+        res.statusCode = 403;
+        res.json({message: 'admin.change_password.forbidden', errors:"forbidden", data: null})
+     }
+   }catch(err){
+       console.log(err);
+   }
 }

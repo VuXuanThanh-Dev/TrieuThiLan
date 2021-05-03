@@ -13,6 +13,7 @@ router.post('/admin/updateProduct', productController.updateProduct);
 // login
 router.post('/admin/signup', accountController.signup);
 router.post('/admin/login', accountController.login);
+router.post('/admin/changePassword', accountController.changePassword);
 // 
 
 module.exports = router;
