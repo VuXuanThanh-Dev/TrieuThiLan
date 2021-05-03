@@ -52,7 +52,7 @@ exports.signup = async (req, res, next)=>{
             return;
         }
     });
-   let token = jwt.sign(authen.payload, authen.secret,{expiresIn: '3h'})
+   let token = jwt.sign(authen.payload, authen.secret,{expiresIn: '30 days'})
     let sql = "insert into admin(`username`, `password`) values(:username, :password)"
     
     let result = await db.query(sql, {
@@ -71,18 +71,7 @@ exports.signup = async (req, res, next)=>{
 
 exports.changePassword = async (req, res, next)=>{
     try{
-        checkAuthorization(req, res, next);
-        let tk = req.token;
-        if(!tk){
-          return;
-        }else{
-            console.log('token ',tk);
-        }
-        await jwt.verify(tk, authen.secret, (err, decoded)=>{
-            if(err){
-                res.json({message: 'errors', token: null, errors:'token is invalid!'})
-            }
-        });
+        
         let salt = bcrypt.genSaltSync(12);
         let password = bcrypt.hashSync(req.body.password, salt);
         let result = await db.query("update admin set `password`=? where username=?",{
@@ -103,19 +92,3 @@ exports.changePassword = async (req, res, next)=>{
     
 };
 
-function checkAuthorization(req, res, next){
-   try{
-    let auth = req.headers['authorization'];
-    let token = auth.split(' ')[1];
-    if(token){
-     
-     req.token = token;
-     
-    }else{
-        res.statusCode = 403;
-        res.json({message: 'admin.change_password.forbidden', errors:"forbidden", data: null})
-     }
-   }catch(err){
-       console.log(err);
-   }
-}

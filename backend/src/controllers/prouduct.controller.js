@@ -52,12 +52,7 @@ exports.deleteProduct = async (req, res, next)=>{
             type: QueryTypes.UPDATE,
             replacements: [id]
         });
-    
-        if(!result.data[0]){
-            res.json({message: "admin.delete_product.error", errors: "server.errors", data: null})
-        }else{
-            res.json({message: "admin.delete_product.success", errors: null, data: result})
-        }
+        res.json({message: "admin.delete_product.success", errors: null, data: result});
     }catch(err){
         console.log(err);
         res.json({message: "admin.delete_product.error", errors: "server.errors", data: null})
@@ -73,13 +68,9 @@ exports.updateProduct = async (req, res, next)=>{
         replacements: req.body,
         type: QueryTypes.UPDATE
     });
-    if(!result){
-        // res.json({message: "admin.update_product.error", errors: "server.errors", data: null})
-    }else{
-        res.json({message: "admin.update_product.success", errors: null, data: result})
-    }
+    res.json({message: "admin.update_product.success", errors: null, data: result})
+
    }catch(err){
-    res.json({message: "admin.update_product.error", errors: "server.errors", data: null})
-     
+    res.json({message: "admin.update_product.error", errors: "server.errors", data: null});
    }
 }
