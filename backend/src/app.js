@@ -17,6 +17,9 @@ const sick = require('./models/sick.model');
 const image = require ('./models/image.model');
 const symptom = require('./models/symptom.model');
 const symptom_sick = require('./models/symptom_sick.model');
+const contact = require('./models/contact.model');
+const admin = require('./models/admin.model');
+
 
 sick.hasOne(folkMedicine);
 folkMedicine.belongsTo(sick);

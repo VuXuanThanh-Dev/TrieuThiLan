@@ -9,7 +9,7 @@ exports.login = async (req, res, next)=>{
    try{
     let username = req.body.username;
     let password = req.body.password;
-    let sql = "select * from admin where `username`=?";
+    let sql = "select * from admins where `username`=?";
     let result = await db.query(sql, {
         replacements: [username],
         type: QueryTypes.SELECT
@@ -53,28 +53,24 @@ exports.signup = async (req, res, next)=>{
         }
     });
    let token = jwt.sign(authen.payload, authen.secret,{expiresIn: '30 days'})
-    let sql = "insert into admin(`username`, `password`) values(:username, :password)"
+    let sql = "insert into admins (`username`, `password`) values (:username, :password)"
     
     let result = await db.query(sql, {
         replacements: {username: username,password: has},
         type: QueryTypes.INSERT
     });
-    if(!result){
-    }else{
-        res.json({message: "admin.sign_up.success", errors: null, data: result[0], token: token})
-    }
+    res.json({message: "admin.sign_up.success", errors: null, data: result[0], token: token})
    }catch(err){
-    res.json({message:"admin.sign_up.errors", errors: "server.errors", data: null})
-
+       console.log(err);
+    res.json({message:"admin.sign_up.errors", errors: "server.errors", data: null});
    }
 };
 
 exports.changePassword = async (req, res, next)=>{
     try{
-        
         let salt = bcrypt.genSaltSync(12);
         let password = bcrypt.hashSync(req.body.password, salt);
-        let result = await db.query("update admin set `password`=? where username=?",{
+        let result = await db.query("update admins set `password`=? where username=?",{
             replacements: [password, req.body.username],
             type: QueryTypes.UPDATE
         });
@@ -85,10 +81,7 @@ exports.changePassword = async (req, res, next)=>{
             res.json({message: 'errors', errors: 'server.errors', data: null});
         }
        
-        
     }catch(err){
       console.log(err);
     }
-    
 };
-
